@@ -4,7 +4,7 @@ public sealed class Appointment
 {
     public Appointment()
     {
-        Id = new Guid();
+        Id = Guid.NewGuid();
     }
     public Guid Id { get; set; }
     public Guid DoctorId { get; set; }

@@ -5,6 +5,7 @@ public sealed class Patient
     public Patient()
     {
         Id = Guid.NewGuid();
+        Appointments = new List<Appointment>();
     }
     public Guid Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
@@ -14,5 +15,7 @@ public sealed class Patient
     public string City { get; set; } = string.Empty;
     public string District { get; set; } = string.Empty;
     public string FullAddress { get; set; } = string.Empty;
-
+    
+    // Navigation Properties
+    public ICollection<Appointment> Appointments { get; set; }
 }
