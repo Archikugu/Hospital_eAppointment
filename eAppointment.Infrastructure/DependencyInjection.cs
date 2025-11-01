@@ -3,10 +3,16 @@ using eAppointment.Domain.Entities;
 using eAppointment.Domain.Repositories;
 using eAppointment.Infrastructure.Context;
 using eAppointment.Infrastructure.Repositories;
+using eAppointment.Infrastructure.Seeding;
 using eAppointment.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace eAppointment.Infrastructure;
 
@@ -43,8 +49,32 @@ public static class DependencyInjection
         }).AddEntityFrameworkStores<ApplicationDbContext>();
 
         // JWT Settings
+        var jwtSettings = configuration.GetSection("JwtSettings").Get<JwtSettings>();
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
         services.AddScoped<IJwtProvider, JwtProvider>();
+
+        // JWT Authentication
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            if (jwtSettings != null)
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings.Issuer,
+                    ValidAudience = jwtSettings.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
+                };
+            }
+        });
 
         // Repository registrations
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<ApplicationDbContext>());
@@ -54,5 +84,15 @@ public static class DependencyInjection
         services.AddScoped<IAppUserRepository, AppUserRepository>();
 
         return services;
+    }
+
+    public static async Task SeedDataAsync(this WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<AppRole>>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+        await DataSeeder.SeedAsync(userManager, roleManager, configuration);
     }
 }

@@ -14,7 +14,7 @@ internal sealed class LoginCommandHandler(UserManager<AppUser> userManager, IJwt
         AppUser? appUser = await userManager.Users.FirstOrDefaultAsync(p => p.UserName == request.UserNameOrEmail || p.Email == request.UserNameOrEmail, cancellationToken);
         if (appUser is null)
         {
-            return Result.Failure<LoginCommandResponse>(Error.NotFound("User", request.UserNameOrEmail));
+            return Result.Failure<LoginCommandResponse>(Error.Validation("Invalid username or password."));
         }
         bool isPasswordCorrect = await userManager.CheckPasswordAsync(appUser, request.Password);
         if (!isPasswordCorrect)
