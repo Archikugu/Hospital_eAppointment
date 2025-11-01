@@ -1,0 +1,132 @@
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-5 col-xl-4">
+        <div class="card shadow-lg border-0">
+          <div class="card-body p-5">
+            <!-- Header -->
+            <div class="text-center mb-4">
+              <i class="fas fa-hospital-user fa-3x text-primary mb-3"></i>
+              <h2 class="fw-bold text-dark">Hospital eAppointment</h2>
+              <p class="text-muted">Sign In</p>
+            </div>
+
+            <!-- Login Form -->
+            <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+              <!-- Username/Email Input -->
+              <div class="mb-3">
+                <label for="userNameOrEmail" class="form-label fw-semibold">
+                  <i class="fas fa-user me-2"></i>Username or Email
+                </label>
+                <input
+                  type="text"
+                  class="form-control form-control-lg"
+                  id="userNameOrEmail"
+                  name="userNameOrEmail"
+                  [(ngModel)]="loginData.userNameOrEmail"
+                  #userNameOrEmail="ngModel"
+                  required
+                  placeholder="Enter username or email"
+                  [class.is-invalid]="userNameOrEmail.invalid && userNameOrEmail.touched"
+                />
+                <div class="invalid-feedback" *ngIf="userNameOrEmail.invalid && userNameOrEmail.touched">
+                  Username or email is required.
+                </div>
+              </div>
+
+              <!-- Password Input -->
+              <div class="mb-3">
+                <label for="password" class="form-label fw-semibold">
+                  <i class="fas fa-lock me-2"></i>Password
+                </label>
+                <div class="input-group">
+                  <input
+                    [type]="showPassword ? 'text' : 'password'"
+                    class="form-control form-control-lg"
+                    id="password"
+                    name="password"
+                    [(ngModel)]="loginData.password"
+                    #password="ngModel"
+                    required
+                    placeholder="Enter your password"
+                    [class.is-invalid]="password.invalid && password.touched"
+                  />
+                  <button
+                    class="btn btn-outline-secondary"
+                    type="button"
+                    (click)="togglePasswordVisibility()"
+                    tabindex="-1"
+                  >
+                    <i class="fas" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+                  </button>
+                  <div class="invalid-feedback" *ngIf="password.invalid && password.touched">
+                    Password is required.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Remember Me & Forgot Password -->
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="rememberMe"
+                    [(ngModel)]="loginData.rememberMe"
+                    name="rememberMe"
+                  />
+                  <label class="form-check-label text-muted" for="rememberMe">
+                    Remember Me
+                  </label>
+                </div>
+                <a href="#" class="text-decoration-none text-primary">Forgot Password?</a>
+              </div>
+
+              <!-- Error Message -->
+              <div class="alert alert-danger" role="alert" *ngIf="errorMessage">
+                <i class="fas fa-exclamation-circle me-2"></i>{{ errorMessage }}
+              </div>
+
+              <!-- Submit Button -->
+              <button
+                type="submit"
+                class="btn btn-primary btn-lg w-100 mb-3"
+                [disabled]="loginForm.invalid || isLoading"
+              >
+                <span *ngIf="!isLoading">
+                  <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                </span>
+                <span *ngIf="isLoading">
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Signing in...
+                </span>
+              </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="text-center my-4">
+              <hr class="my-3" />
+              <small class="text-muted">or</small>
+            </div>
+
+            <!-- Register Link -->
+            <div class="text-center">
+              <p class="mb-0 text-muted">
+                Don't have an account?
+                <a href="#" class="text-primary fw-semibold text-decoration-none">Sign Up</a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="text-center mt-4">
+          <small class="text-muted">
+            <i class="fas fa-shield-alt me-1"></i>
+            You are protected by secure login
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
