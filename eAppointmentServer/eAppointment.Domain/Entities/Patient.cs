@@ -15,6 +15,8 @@ public sealed class Patient
     public string City { get; set; } = string.Empty;
     public string District { get; set; } = string.Empty;
     public string FullAddress { get; set; } = string.Empty;
+    public DateOnly? BirthDate { get; set; }
+    public string? Gender { get; set; }
     
     // Navigation Properties
     public ICollection<Appointment> Appointments { get; set; }

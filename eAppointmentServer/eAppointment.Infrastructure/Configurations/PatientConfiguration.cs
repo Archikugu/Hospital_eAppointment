@@ -36,6 +36,12 @@ internal sealed class PatientConfiguration : IEntityTypeConfiguration<Patient>
         builder.Property(p => p.FullAddress)
             .HasMaxLength(500);
 
+        builder.Property(p => p.Gender)
+            .HasMaxLength(20);
+
+        builder.Property(p => p.BirthDate)
+            .HasColumnType("date");
+
         builder.Ignore(p => p.FullName);
 
         builder.HasMany(p => p.Appointments)

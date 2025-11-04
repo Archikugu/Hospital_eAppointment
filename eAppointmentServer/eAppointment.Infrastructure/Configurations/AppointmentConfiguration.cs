@@ -22,6 +22,10 @@ internal sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appoin
             .IsRequired()
             .HasDefaultValue(false);
 
+        builder.Property(a => a.Note)
+            .HasMaxLength(500)
+            .IsRequired(false);
+
         builder.HasIndex(a => new { a.DoctorId, a.StartDate, a.EndDate });
 
         builder.HasOne(a => a.Doctor)

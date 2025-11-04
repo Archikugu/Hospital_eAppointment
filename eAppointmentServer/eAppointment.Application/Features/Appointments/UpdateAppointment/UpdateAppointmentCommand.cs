@@ -1,20 +1,17 @@
-﻿namespace eAppointment.Domain.Entities;
+using eAppointment.Application.Common.Models;
+using MediatR;
 
-public sealed class Appointment
+namespace eAppointment.Application.Features.Appointments.UpdateAppointment;
+
+public sealed class UpdateAppointmentCommand : IRequest<Result>
 {
-    public Appointment()
-    {
-        Id = Guid.NewGuid();
-    }
     public Guid Id { get; set; }
     public Guid DoctorId { get; set; }
-    public Doctor? Doctor { get; set; }
-
     public Guid PatientId { get; set; }
-    public Patient? Patient { get; set; }
-
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public bool IsCompleted { get; set; }
     public string? Note { get; set; }
 }
+
+
