@@ -1,0 +1,409 @@
+<div class="doctors-page">
+  <!-- Modern Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="page-title">
+          <span class="title-icon">
+            <i class="fas fa-user-md"></i>
+          </span>
+          Doctors Management
+        </h1>
+        <p class="page-subtitle">Manage and monitor all doctors in your hospital system</p>
+      </div>
+      <button class="btn-add-doctor" (click)="openAddDoctorModal()">
+        <i class="fas fa-plus"></i>
+        <span>Add New Doctor</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container-fluid px-4">
+
+    <!-- Modern Search and Filter Section -->
+    <div class="search-filter-section">
+      <div class="search-filter-card">
+        <div class="search-wrapper">
+          <div class="search-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Search doctors by name..."
+            [(ngModel)]="searchTerm"
+            (input)="filterDoctors()"
+          />
+          <button class="clear-search" *ngIf="searchTerm" (click)="searchTerm = ''; filterDoctors()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="filter-wrapper">
+          <div class="filter-icon">
+            <i class="fas fa-filter"></i>
+          </div>
+          <select class="filter-select" [(ngModel)]="selectedDepartment" (change)="filterDoctors()">
+            <option value="">All Departments</option>
+            <option *ngFor="let dept of departments" [value]="dept.value">
+              {{ dept.displayName }}
+            </option>
+          </select>
+        </div>
+
+        <button 
+          class="clear-filters-btn" 
+          (click)="clearFilters()" 
+          [disabled]="!searchTerm && !selectedDepartment"
+          [class.active]="searchTerm || selectedDepartment"
+        >
+          <i class="fas fa-eraser"></i>
+          <span>Clear Filters</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modern Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card stat-card-primary">
+        <div class="stat-content">
+          <div class="stat-info">
+            <p class="stat-label">Total Doctors</p>
+            <h2 class="stat-value">{{ doctors.length }}</h2>
+          </div>
+          <div class="stat-icon stat-icon-primary">
+            <i class="fas fa-user-md"></i>
+          </div>
+        </div>
+        <div class="stat-wave"></div>
+      </div>
+
+      <div class="stat-card stat-card-success">
+        <div class="stat-content">
+          <div class="stat-info">
+            <p class="stat-label">Active Today</p>
+            <h2 class="stat-value">{{ filteredDoctors.length }}</h2>
+          </div>
+          <div class="stat-icon stat-icon-success">
+            <i class="fas fa-check-circle"></i>
+          </div>
+        </div>
+        <div class="stat-wave"></div>
+      </div>
+
+      <div class="stat-card stat-card-info">
+        <div class="stat-content">
+          <div class="stat-info">
+            <p class="stat-label">Departments</p>
+            <h2 class="stat-value">{{ uniqueDepartments.length }}</h2>
+          </div>
+          <div class="stat-icon stat-icon-info">
+            <i class="fas fa-building"></i>
+          </div>
+        </div>
+        <div class="stat-wave"></div>
+      </div>
+    </div>
+
+    <!-- Modern Doctors Grid -->
+    <div class="doctors-grid" *ngIf="(doctors | doctorFilter:searchTerm:selectedDepartment).length > 0; else noDoctorsTemplate">
+      <div class="doctor-card-modern" *ngFor="let doctor of (doctors | doctorFilter:searchTerm:selectedDepartment)">
+        <div class="doctor-card-header">
+          <div class="doctor-avatar-modern">
+            {{ getDoctorInitials(doctor) }}
+          </div>
+          <div class="doctor-status">
+            <span class="status-dot"></span>
+            <span class="status-text">Active</span>
+          </div>
+        </div>
+
+        <div class="doctor-card-body">
+          <h3 class="doctor-name">{{ doctor.firstName }} {{ doctor.lastName }}</h3>
+          <div class="doctor-department">
+            <i class="fas fa-hospital"></i>
+            <span>{{ getDepartmentName(doctor.department) }}</span>
+          </div>
+
+          <div class="doctor-details">
+            <div class="detail-item">
+              <i class="fas fa-id-card"></i>
+              <span>{{ doctor.id.substring(0, 8) }}...</span>
+            </div>
+            <div class="detail-item" *ngIf="doctor.appointments">
+              <i class="fas fa-calendar-check"></i>
+              <span>{{ doctor.appointments.length }} Appointments</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="doctor-card-footer">
+          <button class="action-btn view-btn" (click)="viewDoctor(doctor.id)">
+            <i class="fas fa-eye"></i>
+          </button>
+          <button class="action-btn edit-btn" (click)="editDoctor(doctor.id)">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="action-btn delete-btn" (click)="deleteDoctor(doctor.id)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modern Empty State -->
+    <ng-template #noDoctorsTemplate>
+      <div class="empty-state">
+        <div class="empty-state-content">
+          <div class="empty-icon">
+            <i class="fas fa-user-md"></i>
+          </div>
+          <h3>No Doctors Found</h3>
+          <p>
+            {{ searchTerm || selectedDepartment ? 'Try adjusting your filters' : 'Get started by adding a new doctor' }}
+          </p>
+          <div class="empty-actions">
+            <button class="btn-primary-modern" (click)="openAddDoctorModal()" *ngIf="!searchTerm && !selectedDepartment">
+              <i class="fas fa-plus"></i>
+              <span>Add Your First Doctor</span>
+            </button>
+            <button class="btn-secondary-modern" (click)="clearFilters()" *ngIf="searchTerm || selectedDepartment">
+              <i class="fas fa-times"></i>
+              <span>Clear Filters</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Modern Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+        <div class="spinner-ring"></div>
+      </div>
+      <p>Loading doctors...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="!isLoading && errorMessage" class="alert alert-danger mt-3" role="alert">
+      <i class="fas fa-exclamation-circle me-2"></i>
+      {{ errorMessage }}
+      <button class="btn btn-sm btn-outline-danger ms-2" (click)="loadDoctors()">
+        <i class="fas fa-redo me-1"></i>Retry
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Doctor Modal -->
+<div class="modal-backdrop" *ngIf="showAddModal" (click)="closeAddDoctorModal()"></div>
+<div class="modal-wrapper" *ngIf="showAddModal">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-user-plus me-2"></i>Add New Doctor
+      </h3>
+      <button type="button" class="btn-close" (click)="closeAddDoctorModal()" [disabled]="isSubmitting">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Validation Errors -->
+      <div *ngIf="validationErrors.length > 0" class="alert alert-danger" role="alert">
+        <ul class="mb-0">
+          <li *ngFor="let error of validationErrors">{{ error }}</li>
+        </ul>
+      </div>
+
+      <form (ngSubmit)="createDoctor()">
+        <!-- First Name -->
+        <div class="mb-3">
+          <label for="firstName" class="form-label">
+            <i class="fas fa-user me-1"></i>First Name <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-control"
+            id="firstName"
+            [(ngModel)]="createRequest.firstName"
+            name="firstName"
+            placeholder="Enter first name"
+            required
+            [disabled]="isSubmitting"
+          />
+        </div>
+
+        <!-- Last Name -->
+        <div class="mb-3">
+          <label for="lastName" class="form-label">
+            <i class="fas fa-user me-1"></i>Last Name <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-control"
+            id="lastName"
+            [(ngModel)]="createRequest.lastName"
+            name="lastName"
+            placeholder="Enter last name"
+            required
+            [disabled]="isSubmitting"
+          />
+        </div>
+
+        <!-- Department -->
+        <div class="mb-3">
+          <label for="department" class="form-label">
+            <i class="fas fa-hospital me-1"></i>Department <span class="text-danger">*</span>
+          </label>
+          <select
+            class="form-select"
+            id="department"
+            [(ngModel)]="createRequest.departmentValue"
+            name="department"
+            required
+            [disabled]="isSubmitting"
+          >
+            <option [value]="0" [selected]="createRequest.departmentValue === 0">Select a department</option>
+            <option *ngFor="let dept of departments" [value]="dept.value">
+              {{ dept.displayName }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeAddDoctorModal()"
+            [disabled]="isSubmitting"
+          >
+            <i class="fas fa-times me-1"></i>Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="isSubmitting"
+          >
+            <span *ngIf="!isSubmitting">
+              <i class="fas fa-save me-1"></i>Create Doctor
+            </span>
+            <span *ngIf="isSubmitting">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Creating...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Doctor Modal -->
+<div class="modal-backdrop" *ngIf="showEditModal" (click)="closeEditDoctorModal()"></div>
+<div class="modal-wrapper" *ngIf="showEditModal">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">
+        <i class="fas fa-user-edit me-2"></i>Edit Doctor
+      </h3>
+      <button type="button" class="btn-close" (click)="closeEditDoctorModal()" [disabled]="isUpdating">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Validation Errors -->
+      <div *ngIf="validationErrors.length > 0" class="alert alert-danger" role="alert">
+        <ul class="mb-0">
+          <li *ngFor="let error of validationErrors">{{ error }}</li>
+        </ul>
+      </div>
+
+      <form (ngSubmit)="updateDoctor()">
+        <!-- First Name -->
+        <div class="mb-3">
+          <label for="editFirstName" class="form-label">
+            <i class="fas fa-user me-1"></i>First Name <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-control"
+            id="editFirstName"
+            [(ngModel)]="editRequest.firstName"
+            name="editFirstName"
+            placeholder="Enter first name"
+            required
+            [disabled]="isUpdating"
+          />
+        </div>
+
+        <!-- Last Name -->
+        <div class="mb-3">
+          <label for="editLastName" class="form-label">
+            <i class="fas fa-user me-1"></i>Last Name <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            class="form-control"
+            id="editLastName"
+            [(ngModel)]="editRequest.lastName"
+            name="editLastName"
+            placeholder="Enter last name"
+            required
+            [disabled]="isUpdating"
+          />
+        </div>
+
+        <!-- Department -->
+        <div class="mb-3">
+          <label for="editDepartment" class="form-label">
+            <i class="fas fa-hospital me-1"></i>Department <span class="text-danger">*</span>
+          </label>
+          <select
+            class="form-select"
+            id="editDepartment"
+            [(ngModel)]="editRequest.departmentValue"
+            name="editDepartment"
+            required
+            [disabled]="isUpdating"
+          >
+            <option [value]="0">Select a department</option>
+            <option *ngFor="let dept of departments" [value]="dept.value">
+              {{ dept.displayName }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeEditDoctorModal()"
+            [disabled]="isUpdating"
+          >
+            <i class="fas fa-times me-1"></i>Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="isUpdating"
+          >
+            <span *ngIf="!isUpdating">
+              <i class="fas fa-save me-1"></i>Update Doctor
+            </span>
+            <span *ngIf="isUpdating">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Updating...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

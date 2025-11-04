@@ -1,0 +1,268 @@
+<div class="patients-page">
+	<!-- Header -->
+	<div class="page-header gradient">
+		<div class="header-content">
+			<div class="header-text">
+				<h1 class="page-title">
+					<span class="title-icon"><i class="fas fa-users"></i></span>
+					Patients Management
+				</h1>
+				<p class="page-subtitle">Manage and monitor all patients in your hospital system</p>
+			</div>
+			<button class="btn-add" (click)="openAddPatientModal()">
+				<i class="fas fa-user-plus"></i>
+				<span>Add New Patient</span>
+			</button>
+		</div>
+	</div>
+
+	<div class="main-content">
+		<!-- Search and Filter -->
+		<div class="search-filter-section">
+			<div class="search-filter-card">
+				<div class="search-wrapper">
+					<div class="search-icon">
+						<i class="fas fa-search"></i>
+					</div>
+					<input 
+						type="text" 
+						class="search-input" 
+						placeholder="Search patients by name, identity number, gender or birth date..." 
+						[(ngModel)]="searchTerm" 
+					/>
+					<button class="clear-search" *ngIf="searchTerm" (click)="searchTerm = ''">
+						<i class="fas fa-times"></i>
+					</button>
+				</div>
+				<button 
+					class="clear-filters-btn" 
+					(click)="searchTerm = ''" 
+					[disabled]="!searchTerm"
+					[class.active]="searchTerm"
+				>
+					<i class="fas fa-eraser"></i>
+					<span>Clear Filters</span>
+				</button>
+			</div>
+		</div>
+
+		<!-- Stats -->
+		<div class="stats-grid">
+			<div class="stat-card stat-card-primary">
+				<div class="stat-content">
+					<div class="stat-info">
+						<p class="stat-label">Total Patients</p>
+						<h2 class="stat-value">{{ patients.length }}</h2>
+					</div>
+					<div class="stat-icon stat-icon-primary">
+						<i class="fas fa-users"></i>
+					</div>
+				</div>
+				<div class="stat-wave"></div>
+			</div>
+			<div class="stat-card stat-card-success">
+				<div class="stat-content">
+					<div class="stat-info">
+						<p class="stat-label">Filtered</p>
+						<h2 class="stat-value">{{ (patients | patientFilter:searchTerm).length }}</h2>
+					</div>
+					<div class="stat-icon stat-icon-success">
+						<i class="fas fa-filter"></i>
+					</div>
+				</div>
+				<div class="stat-wave"></div>
+			</div>
+		</div>
+
+		<!-- Loading -->
+		<div class="loading-state" *ngIf="isLoading">
+			<div class="loading-spinner">
+				<div class="spinner-ring"></div>
+				<div class="spinner-ring"></div>
+				<div class="spinner-ring"></div>
+			</div>
+			<p>Loading patients...</p>
+		</div>
+
+		<!-- Error -->
+		<div *ngIf="!isLoading && errorMessage" class="alert alert-danger mt-3" role="alert">
+			<i class="fas fa-exclamation-circle me-2"></i>
+			{{ errorMessage }}
+			<button class="btn btn-sm btn-outline-danger ms-2" (click)="loadPatients()">
+				<i class="fas fa-redo me-1"></i>Retry
+			</button>
+		</div>
+
+		<!-- Grid -->
+		<div class="patients-grid" *ngIf="!isLoading">
+			<div class="patient-card" *ngFor="let p of (patients | patientFilter:searchTerm); trackBy: trackByPatientId">
+				<!-- Decorative cover -->
+				<div class="card-cover"></div>
+				<div class="card-header">
+					<div class="avatar-ring">
+						<div class="avatar">{{ (p.firstName[0] || 'P') + (p.lastName[0] || '').toUpperCase() }}</div>
+					</div>
+					<div class="id-chip">#{{ p.id.substring(0, 8) }}</div>
+				</div>
+				<div class="card-body">
+					<h3 class="name">{{ p.firstName }} {{ p.lastName }}</h3>
+					<div class="chips">
+						<span class="chip" *ngIf="p.gender">
+							<i class="fas fa-venus-mars"></i>
+							{{ p.gender }}
+						</span>
+						<span class="chip" *ngIf="p.birthDate">
+							<i class="fas fa-birthday-cake"></i>
+							{{ p.birthDate }}
+						</span>
+					</div>
+					<div class="meta">
+						<div class="meta-item" *ngIf="p.identityNumber">
+							<i class="fas fa-id-card"></i>
+							<span>{{ p.identityNumber }}</span>
+						</div>
+					</div>
+				</div>
+				<div class="card-footer">
+					<div class="actions">
+						<button class="action-btn view" title="View"><i class="fas fa-eye"></i></button>
+						<button class="action-btn edit" title="Edit" (click)="openEditPatientModal(p.id)"><i class="fas fa-edit"></i></button>
+						<button class="action-btn delete" title="Delete" (click)="deletePatient(p.id)"><i class="fas fa-trash"></i></button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Empty State -->
+			<div class="empty-state" *ngIf="(patients | patientFilter:searchTerm).length === 0 && !errorMessage">
+				<div class="empty-icon"><i class="fas fa-user-slash"></i></div>
+				<h3>No Patients Found</h3>
+				<p>{{ searchTerm ? 'Try a different keyword' : 'Get started by adding a new patient' }}</p>
+				<button class="btn-primary" (click)="openAddPatientModal()" *ngIf="!searchTerm">
+					<i class="fas fa-user-plus"></i> Add Patient
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Add Patient Modal -->
+<div class="modal-backdrop" *ngIf="showAddModal" (click)="closeAddPatientModal()"></div>
+<div class="modal-wrapper" *ngIf="showAddModal">
+	<div class="modal-content" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h3 class="modal-title">
+				<i class="fas fa-user-plus me-2"></i>Add New Patient
+			</h3>
+			<button type="button" class="btn-close" (click)="closeAddPatientModal()" [disabled]="isSubmitting" aria-label="Close"></button>
+		</div>
+		<div class="modal-body">
+			<div *ngIf="validationErrors.length > 0" class="alert alert-danger" role="alert">
+				<ul class="mb-0">
+					<li *ngFor="let error of validationErrors">{{ error }}</li>
+				</ul>
+			</div>
+
+			<form (ngSubmit)="createPatient()">
+				<div class="row gx-2">
+					<div class="col-12 col-md-6 mb-3">
+						<label for="pFirstName" class="form-label"><i class="fas fa-user me-1"></i>First Name <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" id="pFirstName" [(ngModel)]="createRequest.firstName" name="pFirstName" required [disabled]="isSubmitting" />
+					</div>
+					<div class="col-12 col-md-6 mb-3">
+						<label for="pLastName" class="form-label"><i class="fas fa-user me-1"></i>Last Name <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" id="pLastName" [(ngModel)]="createRequest.lastName" name="pLastName" required [disabled]="isSubmitting" />
+					</div>
+				</div>
+				<div class="row gx-2">
+					<div class="col-12 col-md-6 mb-3">
+						<label for="pIdentity" class="form-label"><i class="fas fa-id-card me-1"></i>Identity Number <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" id="pIdentity" [(ngModel)]="createRequest.identityNumber" name="pIdentity" required maxlength="11" inputmode="numeric" pattern="\d*" [disabled]="isSubmitting" />
+					</div>
+					<div class="col-12 col-md-6 mb-3">
+						<label for="pBirthDate" class="form-label"><i class="fas fa-birthday-cake me-1"></i>Birth Date</label>
+						<input type="date" class="form-control" id="pBirthDate" [(ngModel)]="createRequest.birthDate" name="pBirthDate" [disabled]="isSubmitting" />
+					</div>
+				</div>
+				<div class="row gx-2">
+					<div class="col-12 col-md-6 mb-3">
+						<label for="pGender" class="form-label"><i class="fas fa-venus-mars me-1"></i>Gender</label>
+						<select class="form-select" id="pGender" [(ngModel)]="createRequest.gender" name="pGender" [disabled]="isSubmitting">
+							<option [ngValue]="undefined">Select</option>
+							<option value="Male">Male</option>
+							<option value="Female">Female</option>
+							<option value="Other">Other</option>
+						</select>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn-ghost" (click)="closeAddPatientModal()" [disabled]="isSubmitting">Cancel</button>
+					<button type="submit" class="btn-primary-modern" [disabled]="isSubmitting">
+						<span *ngIf="!isSubmitting"><i class="fas fa-save me-1"></i>Create Patient</span>
+						<span *ngIf="isSubmitting"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Creating...</span>
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<!-- Edit Patient Modal -->
+<div class="modal-backdrop" *ngIf="showEditModal" (click)="closeEditPatientModal()"></div>
+<div class="modal-wrapper" *ngIf="showEditModal">
+	<div class="modal-content" (click)="$event.stopPropagation()">
+		<div class="modal-header">
+			<h3 class="modal-title">
+				<i class="fas fa-user-edit me-2"></i>Edit Patient
+			</h3>
+			<button type="button" class="btn-close" (click)="closeEditPatientModal()" [disabled]="isUpdating" aria-label="Close"></button>
+		</div>
+		<div class="modal-body">
+			<div *ngIf="validationErrors.length > 0" class="alert alert-danger" role="alert">
+				<ul class="mb-0">
+					<li *ngFor="let error of validationErrors">{{ error }}</li>
+				</ul>
+			</div>
+
+			<form (ngSubmit)="updatePatient()">
+				<div class="row gx-2">
+					<div class="col-12 col-md-6 mb-3">
+						<label for="eFirstName" class="form-label"><i class="fas fa-user me-1"></i>First Name <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" id="eFirstName" [(ngModel)]="editRequest.firstName" name="eFirstName" required [disabled]="isUpdating" />
+					</div>
+					<div class="col-12 col-md-6 mb-3">
+						<label for="eLastName" class="form-label"><i class="fas fa-user me-1"></i>Last Name <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" id="eLastName" [(ngModel)]="editRequest.lastName" name="eLastName" required [disabled]="isUpdating" />
+					</div>
+				</div>
+				<div class="row gx-2">
+					<div class="col-12 col-md-6 mb-3">
+						<label for="eIdentity" class="form-label"><i class="fas fa-id-card me-1"></i>Identity Number <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" id="eIdentity" [(ngModel)]="editRequest.identityNumber" name="eIdentity" required maxlength="11" inputmode="numeric" pattern="\d*" [disabled]="isUpdating" />
+					</div>
+					<div class="col-12 col-md-6 mb-3">
+						<label for="eBirthDate" class="form-label"><i class="fas fa-birthday-cake me-1"></i>Birth Date</label>
+						<input type="date" class="form-control" id="eBirthDate" [(ngModel)]="editRequest.birthDate" name="eBirthDate" [disabled]="isUpdating" />
+					</div>
+				</div>
+				<div class="row gx-2">
+					<div class="col-12 col-md-6 mb-3">
+						<label for="eGender" class="form-label"><i class="fas fa-venus-mars me-1"></i>Gender</label>
+						<select class="form-select" id="eGender" [(ngModel)]="editRequest.gender" name="eGender" [disabled]="isUpdating">
+							<option [ngValue]="undefined">Select</option>
+							<option value="Male">Male</option>
+							<option value="Female">Female</option>
+							<option value="Other">Other</option>
+						</select>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn-ghost" (click)="closeEditPatientModal()" [disabled]="isUpdating">Cancel</button>
+					<button type="submit" class="btn-primary-modern" [disabled]="isUpdating">
+						<span *ngIf="!isUpdating"><i class="fas fa-save me-1"></i>Update Patient</span>
+						<span *ngIf="isUpdating"><span class="spinner-border spinner-border-sm me-2" role="status"></span>Updating...</span>
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

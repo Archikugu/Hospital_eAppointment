@@ -1,0 +1,312 @@
+<div class="appointments-page">
+	<!-- Header -->
+	<div class="page-header gradient">
+		<div class="header-content">
+			<div class="header-text">
+				<h1 class="page-title">
+					<span class="title-icon"><i class="fas fa-calendar-week"></i></span>
+					Appointments Management
+				</h1>
+				<p class="page-subtitle">Haftalık planı inceleyin, uygun slotları yönetin ve randevuları takip edin</p>
+			</div>
+			<div class="header-actions">
+                <div class="stats compact">
+                    <div class="stat-card stat-primary compact">
+                        <div class="stat-content">
+                            <div>
+                                <div class="stat-label">Boş</div>
+                                <div class="stat-value">{{ getWeekFreeCount() }}</div>
+                            </div>
+                            <span class="stat-icon-badge"><i class="fas fa-layer-group"></i></span>
+                        </div>
+                    </div>
+					<div class="stat-card stat-info compact">
+						<div class="stat-content">
+							<div>
+								<div class="stat-label">Dolu</div>
+								<div class="stat-value">{{ getWeekBusyCount() }}</div>
+							</div>
+							<span class="stat-icon-badge"><i class="fas fa-user-check"></i></span>
+						</div>
+					</div>
+				</div>
+				<button class="btn-today" (click)="today()"><i class="fas fa-bullseye me-1"></i> Bugün</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Controls -->
+	<div class="controls-card">
+		<div class="controls-grid">
+			<div class="department-select">
+				<label class="form-label"><i class="fas fa-stethoscope me-1"></i> Departman</label>
+				<select class="form-select" [(ngModel)]="selectedDepartment" (change)="onDepartmentChange()">
+					<option [ngValue]="undefined">Seçiniz</option>
+					<option *ngFor="let dep of departments" [value]="dep">{{ dep }}</option>
+				</select>
+			</div>
+			<div class="doctor-select">
+				<label class="form-label"><i class="fas fa-user-md me-1"></i> Doktor</label>
+				<select class="form-select" [(ngModel)]="selectedDoctorId" (change)="onDoctorChange()" [disabled]="!selectedDepartment">
+					<option [ngValue]="undefined">Doktor seçiniz</option>
+					<option *ngFor="let d of filteredDoctors" [value]="d.id">{{ d.name }} <span *ngIf="d.department">— {{ d.department }}</span></option>
+				</select>
+			</div>
+			<div class="week-nav">
+				<label class="form-label"><i class="fas fa-calendar me-1"></i> Zaman</label>
+				<div class="week-controls">
+					<button class="btn-ghost" (click)="prev()"><i class="fas fa-chevron-left"></i></button>
+					<div class="range" *ngIf="viewMode==='week'">{{ formatRange() }}</div>
+					<div class="range" *ngIf="viewMode==='day'">{{ selectedDay | date:'EEE, d MMM' }}</div>
+					<div class="range" *ngIf="viewMode==='month'">{{ weekStart() | date:'LLLL yyyy' }}</div>
+					<button class="btn-ghost" (click)="next()"><i class="fas fa-chevron-right"></i></button>
+				</div>
+			</div>
+            <div class="legend">
+                <div class="legend-left">
+                    <label class="form-label">Görünüm</label>
+                    <div class="segmented">
+                        <button type="button" class="seg-btn" [class.active]="viewMode==='day'" (click)="setView('day')">Gün</button>
+                        <button type="button" class="seg-btn" [class.active]="viewMode==='week'" (click)="setView('week')">Hafta</button>
+                        <button type="button" class="seg-btn" [class.active]="viewMode==='month'" (click)="setView('month')">Ay</button>
+                    </div>
+                </div>
+                <div class="legend-right">
+                    <label class="form-label">Legend</label>
+                    <div class="legend-items">
+                        <span class="legend-item"><span class="dot free"></span> Müsait</span>
+                        <span class="legend-item"><span class="dot busy"></span> Dolu</span>
+                    </div>
+                </div>
+            </div>
+		</div>
+	</div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="loading-state">
+		<div class="loading-spinner">
+			<div class="spinner-ring"></div>
+			<div class="spinner-ring"></div>
+			<div class="spinner-ring"></div>
+			<div class="spinner-ring"></div>
+		</div>
+		<div class="mt-2">Uygunluk yükleniyor...</div>
+	</div>
+
+    <!-- Error -->
+    <div *ngIf="!isLoading && errorMessage" class="alert alert-danger maxw">{{ errorMessage }}</div>
+
+    <!-- Empty state: require selections -->
+    <ng-template #emptySchedule>
+        <div class="calendar-wrapper empty-wrapper">
+            <div class="empty-card">
+                <div class="empty-icon"><i class="fas fa-filter"></i></div>
+                <div class="empty-title">Filtreleri Seçin</div>
+                <div class="empty-sub">Takvimi görmek için önce <strong>Departman</strong> ve <strong>Doktor</strong> seçiniz.</div>
+                <div class="empty-actions">
+                    <span class="hint"><i class="fas fa-hand-point-up me-1"></i> Yukarıdan seçim yapın</span>
+                </div>
+            </div>
+        </div>
+    </ng-template>
+
+        <!-- Grid -->
+        <div *ngIf="!isLoading && selectedDoctorId && selectedDepartment; else emptySchedule" class="calendar-wrapper">
+		<div class="calendar-grid">
+			<!-- WEEK VIEW -->
+			<div *ngIf="viewMode==='week'">
+                <div class="grid-header">
+					<div class="cell time-col"></div>
+                    <div class="cell day-col" *ngFor="let day of weekDays()" [class.today-col]="isToday(day.date)" [class.full-busy]="isDayFullyBusy(day)">
+						<div class="day-name">{{ day.date | date:'EEE' }}</div>
+						<div class="day-date">{{ day.date | date:'d MMM' }}</div>
+	</div>
+	</div>
+
+<!-- Booking Modal -->
+<div class="modal-backdrop" *ngIf="showBookingModal" (click)="closeBookingModal()"></div>
+<div class="modal-wrapper" *ngIf="showBookingModal">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h5 class="modal-title"><i class="fas fa-calendar-plus me-2"></i> Randevu Oluştur</h5>
+            <button class="modal-close" (click)="closeBookingModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="mb-2 text-muted">
+                <i class="fas fa-clock me-1"></i>
+                {{ bookingData.day?.date | date:'EEE, d MMM' }} — {{ bookingData.slot?.time }}
+            </div>
+            <div class="tabs">
+                <button class="tab-btn" [class.active]="bookingMode==='select'" (click)="bookingMode='select'">Hasta Seç</button>
+                <button class="tab-btn" [class.active]="bookingMode==='new'" (click)="bookingMode='new'">Yeni Hasta</button>
+            </div>
+
+            <div *ngIf="bookingMode==='select'" class="form-grid">
+                <div class="full">
+                    <label class="form-label">Hasta Ara</label>
+                    <input class="form-input" [(ngModel)]="patientSearch" placeholder="Ad, TC veya telefon" />
+                </div>
+                <div class="full">
+                    <label class="form-label">Hasta</label>
+                    <select class="form-input" [(ngModel)]="selectedPatientId">
+                        <option [ngValue]="undefined">Seçiniz</option>
+                        <option *ngFor="let p of filteredPatients" [value]="p.id">{{ p.fullName }} <span *ngIf="p.identityNumber">— {{ p.identityNumber }}</span></option>
+                    </select>
+                </div>
+                <div class="full">
+                    <label class="form-label">Not</label>
+                    <textarea class="form-input" [(ngModel)]="bookingData.note" rows="2" placeholder="İsteğe bağlı"></textarea>
+                </div>
+            </div>
+
+            <div *ngIf="bookingMode==='new'" class="form-grid">
+                <div>
+                    <label class="form-label">Ad Soyad</label>
+                    <input class="form-input" [(ngModel)]="bookingData.fullName" placeholder="Örn. Ali Veli" />
+                </div>
+                <div>
+                    <label class="form-label">TC Kimlik No</label>
+                    <input class="form-input" [(ngModel)]="bookingData.identityNumber" placeholder="11 haneli" maxlength="11" />
+                </div>
+                <div>
+                    <label class="form-label">Telefon</label>
+                    <input class="form-input" [(ngModel)]="bookingData.phone" placeholder="05xx xxx xx xx" />
+                </div>
+                <div class="full">
+                    <label class="form-label">Not</label>
+                    <textarea class="form-input" [(ngModel)]="bookingData.note" rows="2" placeholder="İsteğe bağlı"></textarea>
+                </div>
+            </div>
+            <div *ngIf="bookingError" class="alert alert-danger mt-2">{{ bookingError }}</div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-ghost" (click)="closeBookingModal()" [disabled]="bookingSubmitting">Vazgeç</button>
+            <button class="btn-primary" (click)="submitBooking()" [disabled]="bookingSubmitting">
+                <i class="fas fa-check me-1"></i> Kaydet
+            </button>
+        </div>
+    </div>
+
+</div>
+				<div class="grid-rows">
+					<div class="row-line" *ngFor="let t of timeSlots; let r = index" [class.alt]="r % 2 === 1">
+						<div class="cell time-col">{{ t }}</div>
+                        <div class="cell slot-col" *ngFor="let day of weekDays()" 
+                            [class.busy]="day.slots[r]?.isBusy" 
+                            [class.free]="!day.slots[r]?.isBusy && !isSlotInPast(day, day.slots[r]) && !isSlotTooFar(day)"
+                            [class.past]="!day.slots[r]?.isBusy && isSlotInPast(day, day.slots[r])"
+                            [class.too-far]="!day.slots[r]?.isBusy && !isSlotInPast(day, day.slots[r]) && isSlotTooFar(day)"
+                            [class.today-col]="isToday(day.date)" 
+                            [class.full-busy]="isDayFullyBusy(day)" 
+                            [style.pointer-events]="(!day.slots[r]?.isBusy && (isSlotInPast(day, day.slots[r]) || isSlotTooFar(day))) ? 'none' : 'auto'"
+                            (click)="onSlotClick(day, day.slots[r], $event, r)">
+                            <div class="slot-content">
+                                <span class="slot-pill" 
+                                    [class.free]="!day.slots[r]?.isBusy && !isSlotInPast(day, day.slots[r]) && !isSlotTooFar(day)"
+                                    [class.busy]="day.slots[r]?.isBusy"
+                                    [class.past]="!day.slots[r]?.isBusy && isSlotInPast(day, day.slots[r])"
+                                    [class.too-far]="!day.slots[r]?.isBusy && !isSlotInPast(day, day.slots[r]) && isSlotTooFar(day)">
+                                    <i class="fas" [ngClass]="day.slots[r]?.isBusy ? 'fa-user-check' : (isSlotInPast(day, day.slots[r]) ? 'fa-ban' : (isSlotTooFar(day) ? 'fa-lock' : 'fa-circle'))"></i>
+                                    <span class="slot-title" 
+                                        [title]="day.slots[r]?.isBusy ? (day.slots[r]?.patientName || day.slots[r]?.title || 'Booked') : null">
+                                        {{ day.slots[r]?.isBusy ? shortenName(day.slots[r]?.patientName || day.slots[r]?.title || 'Booked', 12) : (isSlotInPast(day, day.slots[r]) ? 'Geçmiş' : (isSlotTooFar(day) ? 'Çok İleri' : 'Müsait')) }}
+                                    </span>
+                                </span>
+                                <!-- Popover -->
+                                <div class="slot-popover" [ngClass]="getPopoverPositionClass()" *ngIf="popoverVisible && isPopoverSlot(day, r)" (click)="$event.stopPropagation()">
+                                    <div class="pop-header">
+                                        <div class="pop-icon"><i class="fas fa-calendar-check"></i></div>
+                                        <div class="pop-info">
+                                            <div class="pop-title">{{ day.slots[r]?.patientName || day.slots[r]?.title || 'Randevu' }}</div>
+                                            <div class="pop-time">
+                                                <span><i class="fas fa-calendar-alt me-1"></i>{{ day.date | date:'d MMM yyyy' }}</span>
+                                                <span><i class="fas fa-clock me-1"></i>{{ day.slots[r]?.time }} - {{ getEndTime(day.slots[r]) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="pop-note" *ngIf="day.slots[r]?.note || (editingNote && editingSlotId === day.slots[r]?.appointmentId)" (click)="$event.stopPropagation()">
+                                        <div class="pop-note-label">
+                                            <i class="fas fa-sticky-note me-1"></i>
+                                            <span>Not:</span>
+                                        </div>
+                                        <textarea 
+                                            *ngIf="editingNote && editingSlotId === day.slots[r]?.appointmentId" 
+                                            class="pop-note-input" 
+                                            [(ngModel)]="noteText" 
+                                            placeholder="Not ekleyin veya düzenleyin..."
+                                            rows="3"
+                                            (click)="$event.stopPropagation()"
+                                            (mousedown)="$event.stopPropagation()"
+                                            (focus)="$event.stopPropagation()"></textarea>
+                                        <div *ngIf="!(editingNote && editingSlotId === day.slots[r]?.appointmentId) && day.slots[r]?.note" class="pop-note-text">
+                                            {{ day.slots[r]?.note }}
+                                        </div>
+                                        <div *ngIf="!(editingNote && editingSlotId === day.slots[r]?.appointmentId) && !day.slots[r]?.note" class="pop-note-text" style="color: #adb5bd; font-style: italic;">
+                                            Not yok
+                                        </div>
+                                        <div class="pop-note-actions" *ngIf="editingNote && editingSlotId === day.slots[r]?.appointmentId">
+                                            <button type="button" class="btn-note-save" (click)="saveNote(day.slots[r]); $event.stopPropagation()">
+                                                <i class="fas fa-check"></i> Kaydet
+                                            </button>
+                                            <button type="button" class="btn-note-cancel" (click)="cancelEditNote(); $event.stopPropagation()">
+                                                <i class="fas fa-times"></i> İptal
+                                            </button>
+                                        </div>
+                                        <button *ngIf="!(editingNote && editingSlotId === day.slots[r]?.appointmentId)" type="button" class="btn-note-edit" (click)="startEditNote(day.slots[r]); $event.stopPropagation()">
+                                            <i class="fas fa-edit"></i> {{ day.slots[r]?.note ? 'Düzenle' : 'Not Ekle' }}
+                                        </button>
+                                    </div>
+                                    <div class="pop-note" *ngIf="!day.slots[r]?.note && !(editingNote && editingSlotId === day.slots[r]?.appointmentId)" (click)="$event.stopPropagation()">
+                                        <button type="button" class="btn-note-edit" (click)="startEditNote(day.slots[r]); $event.stopPropagation()">
+                                            <i class="fas fa-edit"></i> Not Ekle
+                                        </button>
+                                    </div>
+                                    <div class="pop-actions">
+                                        <button type="button" class="btn-icon danger" (click)="$event.stopPropagation(); cancelAppointment(day.slots[r])" title="Randevuyu iptal et">
+                                            <i class="fas fa-trash"></i>
+                                            <span>İptal Et</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+					</div>
+				</div>
+			</div>
+
+			<!-- DAY VIEW -->
+			<div *ngIf="viewMode==='day'" class="day-view">
+				<div class="grid-header">
+					<div class="cell time-col"></div>
+					<div class="cell day-col today-col">
+						<div class="day-name">{{ selectedDay | date:'EEEE' }}</div>
+						<div class="day-date">{{ selectedDay | date:'d MMM' }}</div>
+					</div>
+				</div>
+				<div class="grid-rows">
+					<div class="row-line" *ngFor="let t of timeSlots; let r = index" [class.alt]="r % 2 === 1">
+						<div class="cell time-col">{{ t }}</div>
+						<div class="cell slot-col today-col" [class.busy]="isSelectedDayBusy(r)" [class.free]="!isSelectedDayBusy(r)"></div>
+					</div>
+				</div>
+			</div>
+
+			<!-- MONTH VIEW -->
+			<div *ngIf="viewMode==='month'" class="month-view">
+				<div class="month-header">
+					<div class="wday">Pzt</div><div class="wday">Sal</div><div class="wday">Çar</div><div class="wday">Per</div><div class="wday">Cum</div><div class="wday">Cmt</div><div class="wday">Paz</div>
+				</div>
+				<div class="month-grid">
+					<div class="mcell" *ngFor="let d of getMonthDays()" [class.dim]="!d.isCurrentMonth" [class.today]="isToday(d.date)" (click)="selectDayFromMonth(d.date)">
+						<div class="mdate">{{ d.date | date:'d' }}</div>
+						<div class="mchips" *ngIf="getBusyCountForDate(d.date) as bc">
+							<span class="mchip" [class.busy]="bc>0" [class.free]="bc===0">{{ bc>0 ? (bc + ' dolu') : 'Müsait' }}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+

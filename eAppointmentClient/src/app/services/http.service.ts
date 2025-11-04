@@ -33,8 +33,9 @@ export class HttpService {
     // veya ApiResponse<T> formatında olabilir
     if (this.isApiResponse(response)) {
       // ApiResponse formatında ise
-      if (response.isSuccess && response.value !== undefined) {
-        return Result.success(response.value);
+      if (response.isSuccess) {
+        // value undefined olsa bile success döndür (void için)
+        return Result.success(response.value as T);
       }
 
       const error = response.error
