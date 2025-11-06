@@ -5,6 +5,7 @@ import { HomeComponent } from './components/home/home.component';
 import { DoctorsComponent } from './components/doctors/doctors.component';
 import { AppointmentsComponent } from './components/appointments/appointments.component';
 import { NotFoundComponent } from './components/not-found/not-found.component';
+import { RolesComponent } from './components/roles/roles.component';
 import { UsersComponent } from './components/users/users.component';
 import { authGuard } from './services/auth.service';
 
@@ -38,6 +39,10 @@ export const routes: Routes = [
             {
                 path: "users",
                 component: UsersComponent
+            },
+            {
+                path: "roles",
+                component: RolesComponent
             }
         ]
     },
