@@ -1,0 +1,123 @@
+/* Page backdrop like doctors */
+.roles-page { min-height: 100vh; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding-bottom: 2rem; }
+/* Header styles aligned with doctors page */
+.page-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 3rem 2rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,.1); }
+.header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 2rem; }
+.header-text { color: #fff; }
+.page-title { font-size: 2.2rem; font-weight: 700; margin: 0 0 .5rem 0; display: flex; align-items: center; gap: 1rem; }
+.title-icon { width: 60px; height: 60px; background: rgba(255,255,255,.2); border-radius: 15px; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(10px); font-size: 1.5rem; }
+.page-subtitle { font-size: 1.05rem; opacity: .9; margin: 0; }
+.btn-add-role { background: #fff; color: #667eea; border: none; padding: .875rem 2rem; border-radius: 12px; font-weight: 600; font-size: 1rem; cursor: pointer; display:flex; align-items:center; gap:.5rem; transition: all .3s ease; box-shadow: 0 4px 15px rgba(0,0,0,.2); }
+.btn-add-role:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+
+/* Header action buttons */
+.btn-ensure {
+  background: #ffffff;
+  color: #0d6efd;
+  border: 2px solid #0d6efd;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all .3s ease;
+}
+.btn-ensure:hover:not(:disabled) { background: #0d6efd; color: #fff; box-shadow: 0 6px 20px rgba(13,110,253,.35); }
+.btn-ensure:disabled { opacity: .6; cursor: not-allowed; }
+
+.btn-prune {
+  background: linear-gradient(135deg, #ff7a7a, #d32f2f);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all .3s ease;
+  box-shadow: 0 4px 16px rgba(211,47,47,.35);
+}
+.btn-prune:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(211,47,47,.45); }
+.btn-prune:disabled { opacity: .6; cursor: not-allowed; }
+
+.btn-toolbar .btn { min-width: 130px; }
+
+.search-box { gap: .5rem; min-width: 260px; }
+.search-box i { margin-left: .25rem; }
+
+.stat-pill { background: #f8f9fa; border-radius: 999px; padding: .4rem .75rem; font-weight: 500; }
+
+.badge.bg-soft { background: rgba(13,110,253,.12); color: #0d6efd; margin-left: .5rem; }
+
+/* Loading skeletons */
+.skeleton { height: 12px; background: linear-gradient(90deg,#eee,#f5f5f5,#eee); border-radius: 4px; animation: shimmer 1.4s infinite; }
+@keyframes shimmer { 0%{background-position:-200px 0} 100%{background-position:200px 0} }
+
+.empty-state .empty-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #f1f5ff; color: #0d6efd; font-size: 22px;
+}
+
+/* Doctor-style roles grid/cards */
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.role-card {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,.08);
+  border: 1px solid #f0f0f0;
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+.role-card:hover { transform: translateY(-6px); box-shadow: 0 20px 60px rgba(0,0,0,.12); }
+
+.role-card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.role-avatar {
+  width: 64px; height: 64px; border-radius: 16px;
+  background: rgba(255,255,255,.2); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; border: 2px solid rgba(255,255,255,.35);
+}
+
+.role-card-body { padding: 1.5rem; }
+.role-name { margin: 0 0 .5rem 0; font-weight: 700; }
+.role-meta { font-size: .9rem; }
+
+.role-card-footer { padding: 1rem 1.5rem; background: #f8f9fa; display:flex; gap:.5rem; border-top:1px solid #f0f0f0; }
+.action-btn { flex:1; padding:.6rem; border:none; border-radius:10px; cursor:pointer; transition:all .3s ease; display:flex; align-items:center; justify-content:center; }
+.view-btn { background:#e3f2fd; color:#1976d2; }
+.view-btn:hover { background:#1976d2; color:#fff; transform:scale(1.05); }
+.delete-btn { background:#ffebee; color:#d32f2f; }
+.delete-btn:hover { background:#d32f2f; color:#fff; transform:scale(1.05); }
+
+/* Modal styles aligned with doctors page */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1040; backdrop-filter: blur(4px); }
+.modal-wrapper { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; z-index:1050; padding:1rem; }
+.modal-content { background:#fff; border-radius:20px; box-shadow:0 20px 60px rgba(0,0,0,.3); max-width:560px; width:100%; overflow:hidden; }
+.modal-header { padding:1.25rem 1.5rem; border-bottom:1px solid #f0f0f0; display:flex; justify-content:space-between; align-items:center; }
+.modal-title { margin:0; font-weight:700; }
+.btn-close { background:none; border:none; font-size:1.25rem; color:#6c757d; cursor:pointer; }
+.modal-body { padding:1.5rem; }
+.modal-footer { padding:1rem 1.5rem 1.5rem; border-top:1px solid #f0f0f0; display:flex; justify-content:flex-end; gap:1rem; }
+.form-label { font-weight:600; margin-bottom:.5rem; display:block; }
+.form-control { border:2px solid #e9ecef; border-radius:12px; padding:.75rem 1rem; }
+.form-control:focus { outline:none; border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,.1); }
+
+/* Modal buttons - modern look */
+.btn-primary-modern { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: #fff; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; transition: all .3s ease; }
+.btn-primary-modern:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,.4); }
+.btn-primary-modern:disabled { opacity: .6; cursor: not-allowed; }
+
+.btn-secondary-modern { background: #fff; border: 2px solid #e9ecef; color: #6c757d; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; transition: all .3s ease; }
+.btn-secondary-modern:hover:not(:disabled) { border-color: #6c757d; color: #212529; }
+.btn-secondary-modern:disabled { opacity: .6; cursor: not-allowed; }
+
+
