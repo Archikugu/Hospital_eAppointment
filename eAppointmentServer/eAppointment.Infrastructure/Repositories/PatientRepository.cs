@@ -30,5 +30,37 @@ internal sealed class PatientRepository : Repository<Patient>, IPatientRepositor
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<Patient?> GetByFullNameAsync(string firstName, string lastName, CancellationToken cancellationToken = default)
+    {
+        return await _context.Patients
+            .FirstOrDefaultAsync(p => p.FirstName == firstName && p.LastName == lastName, cancellationToken);
+    }
+
+    public async Task<bool> ExistsByFullNameAsync(string firstName, string lastName, CancellationToken cancellationToken = default)
+    {
+        return await _context.Patients
+            .AnyAsync(p => p.FirstName == firstName && p.LastName == lastName, cancellationToken);
+    }
+
+    public async Task<Patient?> GetByAppUserIdAsync(Guid appUserId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Patients.FirstOrDefaultAsync(p => p.AppUserId == appUserId, cancellationToken);
+    }
+
+    public async Task<bool> ExistsByAppUserIdAsync(Guid appUserId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Patients.AnyAsync(p => p.AppUserId == appUserId, cancellationToken);
+    }
+
+    public async Task<bool> HasAppointmentsAsync(Guid patientId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Appointments.AnyAsync(a => a.PatientId == patientId, cancellationToken);
+    }
+
+    public async Task<bool> HasFutureAppointmentsAsync(Guid patientId, DateTime nowUtc, CancellationToken cancellationToken = default)
+    {
+        return await _context.Appointments.AnyAsync(a => a.PatientId == patientId && a.StartDate > nowUtc, cancellationToken);
+    }
+
 }
 

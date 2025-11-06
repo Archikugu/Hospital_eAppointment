@@ -10,5 +10,6 @@ public interface IAppointmentRepository : IRepository<Appointment>
     Task<IEnumerable<Appointment>> GetUpcomingAppointmentsAsync(CancellationToken cancellationToken = default);
     Task<IEnumerable<Appointment>> GetCompletedAppointmentsAsync(CancellationToken cancellationToken = default);
     Task<bool> HasAppointmentAtAsync(Guid doctorId, DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
+    Task<int> CompletePastAppointmentsAsync(DateTime nowUtc, CancellationToken cancellationToken = default);
 }
 

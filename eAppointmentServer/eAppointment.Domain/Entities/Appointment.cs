@@ -16,5 +16,6 @@ public sealed class Appointment
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public bool IsCompleted { get; set; }
+    public bool IsCancelled { get; set; }
     public string? Note { get; set; }
 }

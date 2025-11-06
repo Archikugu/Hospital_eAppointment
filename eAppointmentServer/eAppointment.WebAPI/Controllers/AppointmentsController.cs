@@ -15,11 +15,13 @@ namespace eAppointment.WebAPI.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public sealed class AppointmentsController(IMediator mediator) : ControllerBase
+public sealed class AppointmentsController(IMediator mediator, eAppointment.Domain.Repositories.IAppointmentRepository appointmentRepository) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] Guid? doctorId, [FromQuery] Guid? patientId, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
     {
+        // Geçmiş randevuları tamamla (best-effort)
+        _ = await appointmentRepository.CompletePastAppointmentsAsync(DateTime.UtcNow);
         var query = new GetAllAppointmentsQuery { DoctorId = doctorId, PatientId = patientId, StartDate = startDate, EndDate = endDate };
         var result = await mediator.Send(query);
         return result.IsSuccess ? Ok(Result.Success(result.Value)) : BadRequest(Result.Failure(result.Error));
@@ -28,8 +30,16 @@ public sealed class AppointmentsController(IMediator mediator) : ControllerBase
     [HttpGet("availability")]
     public async Task<IActionResult> GetAvailability([FromQuery] Guid doctorId, [FromQuery] DateTime weekStart)
     {
+        _ = await appointmentRepository.CompletePastAppointmentsAsync(DateTime.UtcNow);
         var result = await mediator.Send(new GetWeeklyAvailabilityQuery { DoctorId = doctorId, WeekStart = weekStart });
         return result.IsSuccess ? Ok(Result.Success(result.Value)) : BadRequest(Result.Failure(result.Error));
+    }
+
+    [HttpPost("sweep-completed")]
+    public async Task<IActionResult> SweepCompleted()
+    {
+        var count = await appointmentRepository.CompletePastAppointmentsAsync(DateTime.UtcNow);
+        return Ok(Result.Success(new { completed = count }));
     }
 
     [HttpGet("{id}")]

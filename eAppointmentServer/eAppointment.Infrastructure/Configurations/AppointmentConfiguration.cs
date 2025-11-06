@@ -18,6 +18,10 @@ internal sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appoin
         builder.Property(a => a.EndDate)
             .IsRequired();
 
+        builder.Property(a => a.IsCancelled)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.Property(a => a.IsCompleted)
             .IsRequired()
             .HasDefaultValue(false);
@@ -26,7 +30,7 @@ internal sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appoin
             .HasMaxLength(500)
             .IsRequired(false);
 
-        builder.HasIndex(a => new { a.DoctorId, a.StartDate, a.EndDate });
+        builder.HasIndex(a => new { a.DoctorId, a.StartDate, a.IsCancelled });
 
         builder.HasOne(a => a.Doctor)
             .WithMany(d => d.Appointments)

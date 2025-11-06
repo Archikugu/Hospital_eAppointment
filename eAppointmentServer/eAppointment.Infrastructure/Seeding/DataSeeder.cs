@@ -1,3 +1,4 @@
+using eAppointment.Application.Constants;
 using eAppointment.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -17,9 +18,7 @@ internal static class DataSeeder
 
     private static async Task SeedRolesAsync(RoleManager<AppRole> roleManager)
     {
-        var roles = new[] { "Admin", "Doctor", "Patient" };
-
-        foreach (var roleName in roles)
+        foreach (var roleName in Roles.All)
         {
             if (!await roleManager.RoleExistsAsync(roleName))
             {
@@ -32,28 +31,36 @@ internal static class DataSeeder
         UserManager<AppUser> userManager,
         IConfiguration configuration)
     {
-        // Check if any user exists
-        if (userManager.Users.Any())
-            return;
-
         var adminUserName = configuration["SeedSettings:AdminUserName"] ?? "admin";
         var adminEmail = configuration["SeedSettings:AdminEmail"] ?? "admin@admin.com";
         var adminPassword = configuration["SeedSettings:AdminPassword"] ?? "Admin123!";
 
-        var adminUser = new AppUser
+        // Try find existing admin by username or email
+        var existingAdmin = userManager.Users.FirstOrDefault(u => u.UserName == adminUserName || u.Email == adminEmail);
+        if (existingAdmin is null)
         {
-            FirstName = "Admin",
-            LastName = "Admin",
-            UserName = adminUserName,
-            Email = adminEmail,
-            EmailConfirmed = true
-        };
+            var adminUser = new AppUser
+            {
+                FirstName = "Admin",
+                LastName = "Admin",
+                UserName = adminUserName,
+                Email = adminEmail,
+                EmailConfirmed = true
+            };
 
-        var result = await userManager.CreateAsync(adminUser, adminPassword);
-
-        if (result.Succeeded)
+            var createResult = await userManager.CreateAsync(adminUser, adminPassword);
+            if (createResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, Roles.Admin);
+            }
+        }
+        else
         {
-            await userManager.AddToRoleAsync(adminUser, "Admin");
+            // Ensure user is in Admin role
+            if (!await userManager.IsInRoleAsync(existingAdmin, Roles.Admin))
+            {
+                await userManager.AddToRoleAsync(existingAdmin, Roles.Admin);
+            }
         }
     }
 }

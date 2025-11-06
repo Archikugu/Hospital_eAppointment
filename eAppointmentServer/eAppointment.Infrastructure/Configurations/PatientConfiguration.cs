@@ -44,6 +44,14 @@ internal sealed class PatientConfiguration : IEntityTypeConfiguration<Patient>
 
         builder.Ignore(p => p.FullName);
 
+        // Unique index for AppUserId when not null
+        builder.HasIndex(p => p.AppUserId)
+            .IsUnique()
+            .HasFilter("[AppUserId] IS NOT NULL");
+
+        // Default query filter: only active patients
+        builder.HasQueryFilter(p => p.IsActive);
+
         builder.HasMany(p => p.Appointments)
             .WithOne(a => a.Patient)
             .HasForeignKey(a => a.PatientId)

@@ -1,8 +1,10 @@
 using eAppointment.Application.Features.Auth.Login;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eAppointment.WebAPI.Controllers;
 
+[AllowAnonymous]
 public sealed class AuthController : BaseApiController
 {
     [HttpPost("login")]

@@ -83,6 +83,10 @@ public static class DependencyInjection
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();
         services.AddScoped<IAppUserRepository, AppUserRepository>();
 
+        // Services
+    services.AddScoped<IRoleSyncService, RoleSyncService>();
+    services.AddScoped<IUserRoleService, UserRoleService>();
+
         return services;
     }
 

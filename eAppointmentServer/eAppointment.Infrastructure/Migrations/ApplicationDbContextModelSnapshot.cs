@@ -239,6 +239,11 @@ namespace eAppointment.Infrastructure.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsCancelled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("IsCompleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -258,7 +263,7 @@ namespace eAppointment.Infrastructure.Migrations
 
                     b.HasIndex("PatientId");
 
-                    b.HasIndex("DoctorId", "StartDate", "EndDate");
+                    b.HasIndex("DoctorId", "StartDate", "IsCancelled");
 
                     b.ToTable("Appointments", (string)null);
                 });
@@ -269,6 +274,9 @@ namespace eAppointment.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("AppUserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Department")
                         .HasColumnType("int");
 
@@ -277,12 +285,19 @@ namespace eAppointment.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AppUserId")
+                        .IsUnique()
+                        .HasFilter("[AppUserId] IS NOT NULL");
 
                     b.ToTable("Doctors", (string)null);
                 });
@@ -291,6 +306,9 @@ namespace eAppointment.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AppUserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateOnly?>("BirthDate")
@@ -325,12 +343,19 @@ namespace eAppointment.Infrastructure.Migrations
                         .HasMaxLength(11)
                         .HasColumnType("nvarchar(11)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AppUserId")
+                        .IsUnique()
+                        .HasFilter("[AppUserId] IS NOT NULL");
 
                     b.HasIndex("IdentityNumber")
                         .IsUnique();

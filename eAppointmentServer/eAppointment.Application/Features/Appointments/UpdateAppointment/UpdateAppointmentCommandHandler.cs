@@ -31,20 +31,32 @@ internal sealed class UpdateAppointmentCommandHandler(
         if (await patientRepository.GetByIdAsync(request.PatientId, cancellationToken) is null)
             return Result.Failure(Error.NotFound("Patient", request.PatientId));
 
+        // Normalize incoming dates to UTC to avoid timezone drift
+        static DateTime NormalizeToUtc(DateTime dt)
+            => dt.Kind switch
+            {
+                DateTimeKind.Utc => dt,
+                DateTimeKind.Local => dt.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(dt, DateTimeKind.Utc)
+            };
+
+        var startUtc = NormalizeToUtc(request.StartDate);
+        var endUtc = NormalizeToUtc(request.EndDate);
+
         // Overlap check excluding this entity: naive approach by checking repository method then verifying id
-        var hasOverlap = await appointmentRepository.HasAppointmentAtAsync(request.DoctorId, request.StartDate, request.EndDate, cancellationToken);
+        var hasOverlap = await appointmentRepository.HasAppointmentAtAsync(request.DoctorId, startUtc, endUtc, cancellationToken);
         if (hasOverlap)
         {
             // If overlaps, ensure it is not only with itself
-            if (!(entity.StartDate == request.StartDate && entity.EndDate == request.EndDate && entity.DoctorId == request.DoctorId))
+            if (!(entity.StartDate == startUtc && entity.EndDate == endUtc && entity.DoctorId == request.DoctorId))
                 return Result.Failure(Error.Conflict("Selected time overlaps with another appointment"));
         }
 
         // Map fields
         entity.DoctorId = request.DoctorId;
         entity.PatientId = request.PatientId;
-        entity.StartDate = request.StartDate;
-        entity.EndDate = request.EndDate;
+        entity.StartDate = startUtc;
+        entity.EndDate = endUtc;
         entity.IsCompleted = request.IsCompleted;
         entity.Note = request.Note;
 

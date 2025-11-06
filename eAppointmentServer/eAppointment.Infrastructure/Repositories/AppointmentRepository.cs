@@ -16,7 +16,7 @@ internal sealed class AppointmentRepository : Repository<Appointment>, IAppointm
         return await _context.Appointments
             .Include(a => a.Doctor)
             .Include(a => a.Patient)
-            .Where(a => a.DoctorId == doctorId)
+            .Where(a => a.DoctorId == doctorId && !a.IsCancelled)
             .OrderBy(a => a.StartDate)
             .ToListAsync(cancellationToken);
     }
@@ -26,7 +26,7 @@ internal sealed class AppointmentRepository : Repository<Appointment>, IAppointm
         return await _context.Appointments
             .Include(a => a.Doctor)
             .Include(a => a.Patient)
-            .Where(a => a.PatientId == patientId)
+            .Where(a => a.PatientId == patientId && !a.IsCancelled)
             .OrderBy(a => a.StartDate)
             .ToListAsync(cancellationToken);
     }
@@ -36,7 +36,7 @@ internal sealed class AppointmentRepository : Repository<Appointment>, IAppointm
         return await _context.Appointments
             .Include(a => a.Doctor)
             .Include(a => a.Patient)
-            .Where(a => a.StartDate >= startDate && a.EndDate <= endDate)
+            .Where(a => a.StartDate >= startDate && a.EndDate <= endDate && !a.IsCancelled)
             .OrderBy(a => a.StartDate)
             .ToListAsync(cancellationToken);
     }
@@ -47,7 +47,7 @@ internal sealed class AppointmentRepository : Repository<Appointment>, IAppointm
         return await _context.Appointments
             .Include(a => a.Doctor)
             .Include(a => a.Patient)
-            .Where(a => a.StartDate > now && !a.IsCompleted)
+            .Where(a => a.StartDate > now && !a.IsCompleted && !a.IsCancelled)
             .OrderBy(a => a.StartDate)
             .ToListAsync(cancellationToken);
     }
@@ -68,11 +68,26 @@ internal sealed class AppointmentRepository : Repository<Appointment>, IAppointm
             .AnyAsync(
                 a => a.DoctorId == doctorId &&
                      !a.IsCompleted &&
+                     !a.IsCancelled &&
+                     a.Doctor != null && a.Patient != null &&
+                     a.Doctor.IsActive && a.Patient.IsActive &&
                      ((a.StartDate <= startDate && a.EndDate > startDate) ||
                       (a.StartDate < endDate && a.EndDate >= endDate) ||
                       (a.StartDate >= startDate && a.EndDate <= endDate)),
                 cancellationToken);
     }
 
+    public async Task<int> CompletePastAppointmentsAsync(DateTime nowUtc, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Appointments.Where(a => !a.IsCompleted && !a.IsCancelled && a.EndDate <= nowUtc);
+        var list = await query.ToListAsync(cancellationToken);
+        foreach (var a in list)
+        {
+            a.IsCompleted = true;
+            Update(a);
+        }
+        await _context.SaveChangesAsync(cancellationToken);
+        return list.Count;
+    }
 }
 

@@ -32,11 +32,30 @@ internal sealed class CreateAppointmentCommandHandler(
         if (patient is null)
             return Result.Failure<Appointment>(Error.NotFound("Patient", request.PatientId));
 
-        var overlaps = await appointmentRepository.HasAppointmentAtAsync(request.DoctorId, request.StartDate, request.EndDate, cancellationToken);
+        if (!doctor.IsActive)
+            return Result.Failure<Appointment>(Error.Validation("Doctor is inactive"));
+        if (!patient.IsActive)
+            return Result.Failure<Appointment>(Error.Validation("Patient is inactive"));
+
+        // Normalize incoming dates to UTC to avoid timezone drift between client/server/DB
+        static DateTime NormalizeToUtc(DateTime dt)
+            => dt.Kind switch
+            {
+                DateTimeKind.Utc => dt,
+                DateTimeKind.Local => dt.ToUniversalTime(),
+                _ => DateTime.SpecifyKind(dt, DateTimeKind.Utc)
+            };
+
+        var startUtc = NormalizeToUtc(request.StartDate);
+        var endUtc = NormalizeToUtc(request.EndDate);
+
+        var overlaps = await appointmentRepository.HasAppointmentAtAsync(request.DoctorId, startUtc, endUtc, cancellationToken);
         if (overlaps)
             return Result.Failure<Appointment>(Error.Conflict("Selected time overlaps with another appointment"));
 
         var entity = mapper.Map<Appointment>(request);
+        entity.StartDate = startUtc;
+        entity.EndDate = endUtc;
         await appointmentRepository.AddAsync(entity, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

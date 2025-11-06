@@ -35,5 +35,25 @@ internal sealed class DoctorRepository : Repository<Doctor>, IDoctorRepository
                 cancellationToken);
     }
 
+    public async Task<Doctor?> GetByAppUserIdAsync(Guid appUserId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Doctors.FirstOrDefaultAsync(d => d.AppUserId == appUserId, cancellationToken);
+    }
+
+    public async Task<bool> ExistsByAppUserIdAsync(Guid appUserId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Doctors.AnyAsync(d => d.AppUserId == appUserId, cancellationToken);
+    }
+
+    public async Task<bool> HasAppointmentsAsync(Guid doctorId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Appointments.AnyAsync(a => a.DoctorId == doctorId, cancellationToken);
+    }
+
+    public async Task<bool> HasFutureAppointmentsAsync(Guid doctorId, DateTime nowUtc, CancellationToken cancellationToken = default)
+    {
+        return await _context.Appointments.AnyAsync(a => a.DoctorId == doctorId && a.StartDate > nowUtc, cancellationToken);
+    }
+
 }
 

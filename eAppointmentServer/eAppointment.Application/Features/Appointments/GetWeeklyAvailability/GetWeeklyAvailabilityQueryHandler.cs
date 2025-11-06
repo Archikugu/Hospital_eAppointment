@@ -35,7 +35,10 @@ internal sealed class GetWeeklyAvailabilityQueryHandler(
         var utcEnd = ToUtc(weekEndLocal);
 
         var appointments = await appointmentRepository.GetByDateRangeAsync(utcStart, utcEnd, cancellationToken).ConfigureAwait(false);
-        appointments = appointments.Where(a => a.DoctorId == request.DoctorId);
+        appointments = appointments
+            .Where(a => a.DoctorId == request.DoctorId)
+            .Where(a => !a.IsCancelled && !a.IsCompleted)
+            .Where(a => (a.Doctor?.IsActive ?? true) && (a.Patient?.IsActive ?? true));
 
         var days = new List<DayAvailabilityDto>(7);
         for (int i = 0; i < 7; i++)
