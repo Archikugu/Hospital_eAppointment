@@ -283,74 +283,66 @@
 
 .patient-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: saturate(180%) blur(6px);
-  border-radius: 18px;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-  border: 1px solid rgba(13, 110, 253, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid #f0f0f0;
 }
 
 .patient-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 40px rgba(13, 110, 253, 0.14);
-  border-color: rgba(13, 110, 253, 0.22);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
-.card-cover {
-  height: 56px;
-  background: linear-gradient(135deg, rgba(13, 110, 253, 0.12), rgba(102, 166, 255, 0.12));
-}
-
-.patient-card .card-header {
+.patient-card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0 16px 8px;
-  margin-top: -28px;
+  align-items: center;
 }
 
-.avatar-ring {
-  padding: 2px;
-  border-radius: 50%;
-  background: conic-gradient(from 180deg, #0d6efd, #66a6ff 40%, #17a2b8 70%, #0d6efd);
-}
-
-.avatar {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
+.patient-avatar-modern {
+  width: 90px;
+  height: 90px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  color: #0d6efd;
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 2rem;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
-.patient-card .id-chip {
-  font-size: 12px;
-  color: #6c757d;
-  background: #f6f7f9;
+.patient-status {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  background: rgba(255,255,255,.2);
+  backdrop-filter: blur(10px);
+  padding: .5rem 1rem;
   border-radius: 20px;
-  padding: 6px 10px;
-  font-weight: 600;
+  color: #fff;
+  font-size: .875rem;
+  font-weight: 500;
 }
 
-.patient-card .card-body {
-  padding: 12px 16px 6px;
-}
+.status-dot { width:8px; height:8px; background:#38ef7d; border-radius:50%; animation:pulse 2s ease-in-out infinite; }
+.status-text { font-weight:600 }
 
-.patient-card .name {
-  margin: 0 0 10px;
-  font-size: 19px;
-  font-weight: 700;
-  color: #2c3e50;
-}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+.patient-card .card-body { padding: 2rem; }
+
+.patient-card .name { margin:0 0 1rem 0; font-size:1.5rem; font-weight:700; color:#212529; }
 
 .chips {
   display: flex;
@@ -364,13 +356,21 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  background: #f1f5ff;
-  color: #0d6efd;
-  border: 1px solid rgba(13, 110, 253, 0.18);
+  background: #f8f9fa;
+  color: #495057;
+  border: 1px solid #e9ecef;
   padding: 6px 10px;
   border-radius: 999px;
   font-weight: 600;
 }
+
+.chip-blue { background: linear-gradient(135deg,#eef2ff,#e3f2fd); color:#3b5bdb; border:1px solid #dbe4ff; box-shadow:0 4px 12px rgba(59,91,219,.15) }
+.chip-amber { background: linear-gradient(135deg,#fff3cd,#ffe8a1); color:#b7791f; border:1px solid #ffe8a1; box-shadow:0 4px 12px rgba(183,121,31,.15) }
+.chip--accent { background: linear-gradient(135deg,#eef2ff,#e3f2fd); color:#3b5bdb; border:1px solid #dbe4ff; box-shadow:0 4px 12px rgba(59,91,219,.12) }
+.chip--time { background: linear-gradient(135deg,#fff7e6,#ffe0b2); color:#ff9800; border:1px solid #ffe0b2; box-shadow:0 4px 12px rgba(255,152,0,.12) }
+.chip--id { background:#f6f7f9; color:#6c757d; border:1px solid #eef1f5 }
+
+.divider { height:1px; background:#f0f0f0; margin:10px 0 12px }
 
 .patient-card .meta {
   display: flex;
@@ -385,6 +385,13 @@
   align-items: center;
   gap: 6px;
 }
+
+/* Stats row inside card */
+.stats-row { display:flex; gap:12px; flex-wrap:wrap; margin:10px 0 12px }
+.stat-pill { display:flex; align-items:center; gap:10px; background:#f8f9fa; border:1px solid #eef1f3; border-radius:12px; padding:8px 12px; box-shadow:0 6px 18px rgba(0,0,0,.06) }
+.stat-pill .stat-icon { color:#667eea; width:20px; text-align:center }
+.stat-pill .label { font-size:12px; color:#6c757d; line-height:1 }
+.stat-pill .value { font-weight:700; color:#212529; line-height:1 }
 
 .patient-card .card-footer {
   padding: 10px 16px 14px;
@@ -621,6 +628,27 @@
 .btn-ghost:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+/* Modern danger button */
+.btn-danger-modern {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #ff6b6b, #d32f2f);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(211, 47, 47, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-danger-modern:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(211, 47, 47, 0.35);
 }
 
 .btn-close {

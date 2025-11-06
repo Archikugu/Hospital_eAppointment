@@ -20,6 +20,7 @@ export class DoctorsComponent implements OnInit {
   selectedDepartment: string = '';
   isLoading: boolean = false;
   errorMessage: string = '';
+  appointmentCounts: Record<string, number> = {};
 
   // Create Doctor Modal
   showAddModal: boolean = false;
@@ -34,6 +35,10 @@ export class DoctorsComponent implements OnInit {
 
   // Departments from model
   departments: Department[] = ALL_DEPARTMENTS;
+
+  // View modal state
+  showViewModal: boolean = false;
+  viewModel: Doctor | null = null;
 
   constructor(private httpService: HttpService, private swal: SwalService) {}
 
@@ -50,6 +55,7 @@ export class DoctorsComponent implements OnInit {
         if (result.isSuccess && result.value) {
           this.doctors = result.value;
           this.filteredDoctors = [...this.doctors];
+          this.loadAppointmentCounts();
         } else {
           this.errorMessage = result.error?.message || 'Failed to load doctors';
           this.doctors = [];
@@ -63,6 +69,28 @@ export class DoctorsComponent implements OnInit {
         this.filteredDoctors = [];
         this.isLoading = false;
       }
+    });
+  }
+
+  private loadAppointmentCounts(): void {
+    // Basit ve güvenli: her doktor için toplam randevu sayısını çek
+    const requests = this.doctors.map(d =>
+      this.httpService.get<any[]>(API_ENDPOINTS.APPOINTMENTS.GET_ALL + `?doctorId=${d.id}`)
+    );
+
+    if (requests.length === 0) return;
+
+    // Sonuçlar bağımsız; ayrı ayrı subscribe ederek hataya rağmen devam edelim
+    this.doctors.forEach(d => {
+      this.httpService.get<any[]>(API_ENDPOINTS.APPOINTMENTS.GET_ALL + `?doctorId=${d.id}`).subscribe({
+        next: (res) => {
+          const items = res.isSuccess ? (res.value || []) : [];
+          this.appointmentCounts[d.id] = items.length;
+        },
+        error: () => {
+          this.appointmentCounts[d.id] = 0;
+        }
+      });
     });
   }
 
@@ -235,7 +263,22 @@ export class DoctorsComponent implements OnInit {
   }
 
   viewDoctor(id?: string): void {
-    console.log('View doctor:', id);
+    if (!id) return;
+    const doc = this.doctors.find(d => d.id === id);
+    if (!doc) return;
+    this.viewModel = doc;
+    this.showViewModal = true;
+  }
+
+  closeViewDoctorModal(): void {
+    this.showViewModal = false;
+    this.viewModel = null;
+  }
+
+  onViewEditDoctor(): void {
+    const id = this.viewModel?.id;
+    this.closeViewDoctorModal();
+    if (id) this.editDoctor(id);
   }
 
   async deleteDoctor(id?: string): Promise<void> {

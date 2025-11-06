@@ -1,0 +1,39 @@
+<div class="main-content">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">Users</h2>
+            <p class="page-subtitle">Kullanıcı yönetimi ve rol görüntüleme</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Kullanıcı</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Roller</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let u of users()">
+                            <td>{{ u | userDisplayName }}</td>
+                            <td>{{ u.username }}</td>
+                            <td>{{ u.email }}</td>
+                            <td>
+                                <div class="roles">
+                                    <span *ngFor="let r of u.roles" class="role-pill">{{ r }}</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+

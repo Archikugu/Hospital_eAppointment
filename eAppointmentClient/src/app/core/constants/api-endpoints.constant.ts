@@ -49,6 +49,19 @@ export const API_ENDPOINTS = {
     GET_PROFILE: 'users/profile',
     UPDATE_PROFILE: 'users/profile',
     CHANGE_PASSWORD: 'users/change-password',
+    GET_ALL: 'users',
+    CREATE: 'users',
+    UPDATE: (id: string) => `users/${id}`,
+    DELETE: (id: string) => `users/${id}`,
+    ROLES: (id: string) => `users/${id}/roles`,
+    PROMOTE_DOCTOR: (id: string) => `users/${id}/promote-to-doctor`,
+    PROMOTE_PATIENT: (id: string) => `users/${id}/promote-to-patient`
+  },
+
+  // Role Endpoints
+  ROLES: {
+    BASE: 'roles',
+    SYNC: (prune: boolean) => `roles/sync?prune=${prune}`
   },
 };
 

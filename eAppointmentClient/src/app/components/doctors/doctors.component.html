@@ -130,9 +130,9 @@
               <i class="fas fa-id-card"></i>
               <span>{{ doctor.id.substring(0, 8) }}...</span>
             </div>
-            <div class="detail-item" *ngIf="doctor.appointments">
+            <div class="detail-item">
               <i class="fas fa-calendar-check"></i>
-              <span>{{ doctor.appointments.length }} Appointments</span>
+              <span>{{ appointmentCounts[doctor.id] ?? 0 }} Appointments</span>
             </div>
           </div>
         </div>
@@ -185,6 +185,37 @@
       </div>
       <p>Loading doctors...</p>
     </div>
+
+  <!-- View Doctor Modal -->
+  <div class="modal-backdrop" *ngIf="showViewModal" (click)="closeViewDoctorModal()"></div>
+  <div class="modal-wrapper" *ngIf="showViewModal">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff">
+        <h3 class="modal-title"><i class="fas fa-user-md me-2"></i>Doctor Details</h3>
+        <button type="button" class="btn-close" (click)="closeViewDoctorModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <div class="info-item"><strong>Name:</strong> {{ viewModel?.firstName }} {{ viewModel?.lastName }}</div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="info-item"><strong>Department:</strong> {{ getDepartmentName(viewModel?.department) }}</div>
+          </div>
+          <div class="col-12">
+            <div class="info-item"><strong>ID:</strong> {{ viewModel?.id }}</div>
+          </div>
+          <div class="col-12" *ngIf="viewModel?.appointments">
+            <div class="info-item"><strong>Appointments:</strong> {{ viewModel?.appointments?.length }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-primary-modern" (click)="onViewEditDoctor()"><i class="fas fa-edit me-1"></i>Edit</button>
+        <button type="button" class="btn-danger-modern" (click)="closeViewDoctorModal()"><i class="fas fa-times me-1"></i>Close</button>
+      </div>
+    </div>
+  </div>
 
     <!-- Error State -->
     <div *ngIf="!isLoading && errorMessage" class="alert alert-danger mt-3" role="alert">
@@ -277,7 +308,7 @@
         <div class="modal-footer">
           <button
             type="button"
-            class="btn btn-secondary"
+            class="btn-secondary-modern"
             (click)="closeAddDoctorModal()"
             [disabled]="isSubmitting"
           >
@@ -285,7 +316,7 @@
           </button>
           <button
             type="submit"
-            class="btn btn-primary"
+            class="btn-primary-modern"
             [disabled]="isSubmitting"
           >
             <span *ngIf="!isSubmitting">
@@ -382,7 +413,7 @@
         <div class="modal-footer">
           <button
             type="button"
-            class="btn btn-secondary"
+            class="btn-secondary-modern"
             (click)="closeEditDoctorModal()"
             [disabled]="isUpdating"
           >
@@ -390,7 +421,7 @@
           </button>
           <button
             type="submit"
-            class="btn btn-primary"
+            class="btn-primary-modern"
             [disabled]="isUpdating"
           >
             <span *ngIf="!isUpdating">

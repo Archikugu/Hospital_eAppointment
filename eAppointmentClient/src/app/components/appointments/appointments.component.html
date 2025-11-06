@@ -57,8 +57,8 @@
 				<div class="week-controls">
 					<button class="btn-ghost" (click)="prev()"><i class="fas fa-chevron-left"></i></button>
 					<div class="range" *ngIf="viewMode==='week'">{{ formatRange() }}</div>
-					<div class="range" *ngIf="viewMode==='day'">{{ selectedDay | date:'EEE, d MMM' }}</div>
-					<div class="range" *ngIf="viewMode==='month'">{{ weekStart() | date:'LLLL yyyy' }}</div>
+                    <div class="range" *ngIf="viewMode==='day'">{{ selectedDay | tzDate:'Europe/Istanbul':{ weekday:'short', day:'numeric', month:'short' } }}</div>
+                    <div class="range" *ngIf="viewMode==='month'">{{ weekStart() | tzDate:'Europe/Istanbul':{ month:'long', year:'numeric' } }}</div>
 					<button class="btn-ghost" (click)="next()"><i class="fas fa-chevron-right"></i></button>
 				</div>
 			</div>
@@ -118,8 +118,8 @@
                 <div class="grid-header">
 					<div class="cell time-col"></div>
                     <div class="cell day-col" *ngFor="let day of weekDays()" [class.today-col]="isToday(day.date)" [class.full-busy]="isDayFullyBusy(day)">
-						<div class="day-name">{{ day.date | date:'EEE' }}</div>
-						<div class="day-date">{{ day.date | date:'d MMM' }}</div>
+                        <div class="day-name">{{ day.date | tzDate:'Europe/Istanbul':{ weekday:'short' } }}</div>
+                        <div class="day-date">{{ day.date | tzDate:'Europe/Istanbul':{ day:'numeric', month:'short' } }}</div>
 	</div>
 	</div>
 
@@ -134,7 +134,7 @@
         <div class="modal-body">
             <div class="mb-2 text-muted">
                 <i class="fas fa-clock me-1"></i>
-                {{ bookingData.day?.date | date:'EEE, d MMM' }} — {{ bookingData.slot?.time }}
+                {{ bookingData.day?.date | tzDate:'Europe/Istanbul':{ weekday:'short', day:'numeric', month:'short' } }} — {{ bookingData.slot?.time }}
             </div>
             <div class="tabs">
                 <button class="tab-btn" [class.active]="bookingMode==='select'" (click)="bookingMode='select'">Hasta Seç</button>
@@ -219,7 +219,7 @@
                                         <div class="pop-info">
                                             <div class="pop-title">{{ day.slots[r]?.patientName || day.slots[r]?.title || 'Randevu' }}</div>
                                             <div class="pop-time">
-                                                <span><i class="fas fa-calendar-alt me-1"></i>{{ day.date | date:'d MMM yyyy' }}</span>
+                                                <span><i class="fas fa-calendar-alt me-1"></i>{{ day.date | tzDate:'Europe/Istanbul':{ day:'numeric', month:'short', year:'numeric' } }}</span>
                                                 <span><i class="fas fa-clock me-1"></i>{{ day.slots[r]?.time }} - {{ getEndTime(day.slots[r]) }}</span>
                                             </div>
                                         </div>

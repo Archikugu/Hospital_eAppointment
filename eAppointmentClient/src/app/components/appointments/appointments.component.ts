@@ -5,6 +5,7 @@ import { HttpService } from '../../services/http.service';
 import { API_ENDPOINTS } from '../../core/constants/api-endpoints.constant';
 import { SwalService } from '../../core/services/swal.service';
 import { Subscription } from 'rxjs';
+import { TzDatePipe } from '../../core/pipes/tz-date.pipe';
 
 type DaySlot = {
     time: string; // e.g. "09:00"
@@ -29,7 +30,7 @@ type DoctorOption = {
 @Component({
     selector: 'app-appointments',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, TzDatePipe],
     templateUrl: './appointments.component.html',
     styleUrls: ['./appointments.component.css']
 })

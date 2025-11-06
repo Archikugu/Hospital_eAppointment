@@ -94,18 +94,17 @@
 		</div>
 
 		<!-- Grid -->
-		<div class="patients-grid" *ngIf="!isLoading">
-			<div class="patient-card" *ngFor="let p of (patients | patientFilter:searchTerm); trackBy: trackByPatientId">
-				<!-- Decorative cover -->
-				<div class="card-cover"></div>
-				<div class="card-header">
-					<div class="avatar-ring">
-						<div class="avatar">{{ (p.firstName[0] || 'P') + (p.lastName[0] || '').toUpperCase() }}</div>
+			<div class="patients-grid" *ngIf="!isLoading">
+				<div class="patient-card" *ngFor="let p of (patients | patientFilter:searchTerm); trackBy: trackByPatientId">
+					<div class="patient-card-header">
+						<div class="patient-avatar-modern">{{ (p.firstName?.[0] || 'P') + (p.lastName?.[0] || '').toUpperCase() }}</div>
+						<div class="patient-status">
+							<span class="status-dot"></span>
+							<span class="status-text">Active</span>
+						</div>
 					</div>
-					<div class="id-chip">#{{ p.id.substring(0, 8) }}</div>
-				</div>
 				<div class="card-body">
-					<h3 class="name">{{ p.firstName }} {{ p.lastName }}</h3>
+						<h3 class="name">{{ p.firstName }} {{ p.lastName }}</h3>
 					<div class="chips">
 						<span class="chip" *ngIf="p.gender">
 							<i class="fas fa-venus-mars"></i>
@@ -115,17 +114,42 @@
 							<i class="fas fa-birthday-cake"></i>
 							{{ p.birthDate }}
 						</span>
+							<span class="chip chip-blue">
+								<i class="fas fa-calendar-check"></i>
+								{{ appointmentCounts[p.id] || 0 }} Appointments
+							</span>
+                            <span class="chip chip-amber" *ngIf="nextAppointments[p.id]">
+								<i class="fas fa-clock"></i>
+                                {{ nextAppointments[p.id] | tzDate:'Europe/Istanbul':{ year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false } }}
+							</span>
+							<span class="chip"><i class="fas fa-hashtag"></i>#{{ p.id.substring(0, 8) }}</span>
 					</div>
-					<div class="meta">
-						<div class="meta-item" *ngIf="p.identityNumber">
-							<i class="fas fa-id-card"></i>
-							<span>{{ p.identityNumber }}</span>
+						<div class="stats-row">
+							<div class="stat-pill">
+								<div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+								<div class="stat-text">
+									<div class="label">Appointments</div>
+									<div class="value">{{ appointmentCounts[p.id] || 0 }}</div>
+								</div>
+							</div>
+                            <div class="stat-pill" *ngIf="nextAppointments[p.id]">
+								<div class="stat-icon"><i class="fas fa-clock"></i></div>
+								<div class="stat-text">
+									<div class="label">Next</div>
+                                    <div class="value">{{ nextAppointments[p.id] | tzDate:'Europe/Istanbul':{ year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false } }}</div>
+								</div>
+							</div>
 						</div>
-					</div>
+						<div class="meta">
+							<div class="meta-item" *ngIf="p.identityNumber">
+								<i class="fas fa-id-card"></i>
+								<span>{{ p.identityNumber }}</span>
+							</div>
+						</div>
 				</div>
 				<div class="card-footer">
 					<div class="actions">
-						<button class="action-btn view" title="View"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn view" title="View" (click)="openViewPatientModal(p)"><i class="fas fa-eye"></i></button>
 						<button class="action-btn edit" title="Edit" (click)="openEditPatientModal(p.id)"><i class="fas fa-edit"></i></button>
 						<button class="action-btn delete" title="Delete" (click)="deletePatient(p.id)"><i class="fas fa-trash"></i></button>
 					</div>
@@ -145,6 +169,29 @@
 	</div>
 </div>
 
+<!-- View Patient Modal -->
+<div class="modal-backdrop" *ngIf="showViewModal" (click)="closeViewPatientModal()"></div>
+<div class="modal-wrapper" *ngIf="showViewModal">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header" style="background:linear-gradient(135deg,#2193b0 0%,#6dd5ed 100%);color:#fff">
+      <h3 class="modal-title"><i class="fas fa-user-injured me-2"></i>Patient Details</h3>
+      <button type="button" class="btn-close" (click)="closeViewPatientModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="row g-3">
+        <div class="col-12 col-md-6"><div class="info-item"><strong>Name:</strong> {{ viewModel?.firstName }} {{ viewModel?.lastName }}</div></div>
+        <div class="col-12 col-md-6" *ngIf="viewModel?.identityNumber"><div class="info-item"><strong>T.C. No:</strong> {{ viewModel?.identityNumber }}</div></div>
+        <div class="col-12 col-md-6" *ngIf="viewModel?.birthDate"><div class="info-item"><strong>Birth Date:</strong> {{ viewModel?.birthDate }}</div></div>
+        <div class="col-12 col-md-6" *ngIf="viewModel?.gender"><div class="info-item"><strong>Gender:</strong> {{ viewModel?.gender }}</div></div>
+        <div class="col-12"><div class="info-item"><strong>ID:</strong> {{ viewModel?.id }}</div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-primary-modern" (click)="onViewEditPatient()"><i class="fas fa-edit me-1"></i>Edit</button>
+      <button type="button" class="btn btn-danger-modern" (click)="closeViewPatientModal()"><i class="fas fa-times me-1"></i>Close</button>
+    </div>
+  </div>
+</div>
 <!-- Add Patient Modal -->
 <div class="modal-backdrop" *ngIf="showAddModal" (click)="closeAddPatientModal()"></div>
 <div class="modal-wrapper" *ngIf="showAddModal">

@@ -1,0 +1,9 @@
+.main-content { padding: 24px; }
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.page-title { margin: 0; font-weight: 600; }
+.page-subtitle { margin: 4px 0 0; color: #6c757d; }
+
+.roles { display: flex; flex-wrap: wrap; gap: 6px; }
+.role-pill { background: #eef2ff; color: #3b5bdb; border: 1px solid #dbe4ff; padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+
+

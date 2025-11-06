@@ -5,12 +5,13 @@ import { Patient, CreatePatientRequest, UpdatePatientRequest } from '../../model
 import { HttpService } from '../../services/http.service';
 import { API_ENDPOINTS } from '../../core/constants/api-endpoints.constant';
 import { PatientFilterPipe } from '../../core/pipes/patient-filter.pipe';
+import { TzDatePipe } from '../../core/pipes/tz-date.pipe';
 import { SwalService } from '../../core/services/swal.service';
 
 @Component({
 	selector: 'app-patients',
 	standalone: true,
-	imports: [CommonModule, FormsModule, PatientFilterPipe],
+    imports: [CommonModule, FormsModule, PatientFilterPipe, TzDatePipe],
 	templateUrl: './patients.component.html',
 	styleUrls: ['./patients.component.css']
 })
@@ -19,6 +20,8 @@ export class PatientsComponent implements OnInit {
 	searchTerm: string = '';
 	isLoading: boolean = false;
 	errorMessage: string = '';
+	appointmentCounts: Record<string, number> = {};
+    nextAppointments: Record<string, Date | string> = {};
 
 	// Create modal state
 	showAddModal: boolean = false;
@@ -31,6 +34,10 @@ export class PatientsComponent implements OnInit {
 	isUpdating: boolean = false;
 	editRequest: UpdatePatientRequest = new UpdatePatientRequest();
 
+	// View modal state
+	showViewModal: boolean = false;
+	viewModel: Patient | null = null;
+
 	constructor(private http: HttpService, private swal: SwalService) {}
 
 	ngOnInit(): void {
@@ -42,9 +49,10 @@ export class PatientsComponent implements OnInit {
 		this.errorMessage = '';
 
 		this.http.get<Patient[]>(API_ENDPOINTS.PATIENTS.GET_ALL).subscribe({
-			next: (result) => {
+				next: (result) => {
 				if (result.isSuccess && result.value) {
 					this.patients = result.value;
+						this.loadPatientAppointmentInfo();
 				} else {
 					this.patients = [];
 					this.errorMessage = result.error?.message || 'Failed to load patients';
@@ -57,6 +65,63 @@ export class PatientsComponent implements OnInit {
 				this.isLoading = false;
 			}
 		});
+	}
+
+	private loadPatientAppointmentInfo(): void {
+        // Her hasta için randevuları çek, say ve en yakın tarihi bul
+        this.nextAppointments = {};
+		this.patients.forEach(p => {
+			this.http.get<any[]>(API_ENDPOINTS.APPOINTMENTS.GET_ALL + `?patientId=${p.id}`).subscribe({
+				next: (res) => {
+					const items = res.isSuccess ? (res.value || []) : [];
+					this.appointmentCounts[p.id] = items.length;
+					if (items.length > 0) {
+						// En yakın gelecek randevu (UTC kabul et; UI'da tz pipe ile yerel göster)
+						const now = new Date();
+						const future = items
+							.map(a => this.parseUtcDate(a.startDate || a.StartDate || a.start || a.Start))
+							.filter(d => !isNaN(d.getTime()) && d >= now)
+							.sort((a,b) => +a - +b);
+						if (future.length > 0) {
+                            const d = future[0];
+                            // Her zaman Date instance tutalım
+                            this.nextAppointments[p.id] = new Date(d.getTime());
+						} else {
+							this.nextAppointments[p.id] = '';
+						}
+					} else {
+						this.appointmentCounts[p.id] = 0;
+						this.nextAppointments[p.id] = '';
+					}
+				},
+				error: () => {
+					this.appointmentCounts[p.id] = 0;
+					this.nextAppointments[p.id] = '';
+				}
+			});
+		});
+	}
+
+	private parseUtcDate(value: any): Date {
+		if (!value) return new Date(NaN);
+		if (value instanceof Date) return value;
+		if (typeof value === 'string') {
+			// Eğer sonu 'Z' ile bitmiyorsa ve timezone içermiyorsa UTC varsay
+			const hasTz = /Z$|[+-]\d{2}:?\d{2}$/.test(value);
+			const iso = hasTz ? value : `${value}Z`;
+			return new Date(iso);
+		}
+		return new Date(value);
+	}
+
+	private formatDateTimeTz(d: Date, timeZone: string): string {
+		const fmt = new Intl.DateTimeFormat('tr-TR', {
+			year: 'numeric', month: '2-digit', day: '2-digit',
+			hour: '2-digit', minute: '2-digit', hour12: false,
+			timeZone
+		});
+		// e.g. "10.11.2025 09:00"
+		return fmt.format(d).replace(',', '');
 	}
 
 	// Create Patient
@@ -195,4 +260,20 @@ export class PatientsComponent implements OnInit {
 
 	// trackBy
 	trackByPatientId = (_: number, item: Patient) => item.id;
+
+	openViewPatientModal(p: Patient): void {
+		this.viewModel = p;
+		this.showViewModal = true;
+	}
+
+	closeViewPatientModal(): void {
+		this.showViewModal = false;
+		this.viewModel = null;
+	}
+
+	onViewEditPatient(): void {
+		const id = this.viewModel?.id;
+		this.closeViewPatientModal();
+		if (id) this.openEditPatientModal(id);
+	}
 }
